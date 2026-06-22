@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nordkorn Rösterei — Vertriebs-Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --cream:#F5EDE4;
+    --card:#FFFCF7;
+    --espresso:#2B1B14;
+    --espresso-soft:#4A3326;
+    --amber:#C77B3D;
+    --amber-soft:#E8C39E;
+    --sage:#6F8B5E;
+    --sage-soft:#D9E2D1;
+    --rust:#B6543C;
+    --rust-soft:#F0D9D2;
+    --ink:#2A211C;
+    --ink-soft:#7A6C60;
+    --hairline:rgba(43,27,20,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .dashboard{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 24px 64px;
+  }
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  /* Header */
+  header.top{
+    background:var(--espresso);
+    margin:0 -24px 28px;
+    padding:22px 24px;
+    border-radius:0 0 18px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand svg{width:34px;height:34px;flex-shrink:0;}
+  .brand-text h1{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:20px;
+    color:var(--cream);
+    margin:0;
+    letter-spacing:0.2px;
+  }
+  .brand-text span{
+    display:block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--amber-soft);
+    margin-top:2px;
+  }
+  .range-toggle{
+    display:flex;
+    background:rgba(255,255,255,0.08);
+    border-radius:999px;
+    padding:4px;
+    gap:2px;
+  }
+  .range-toggle button{
+    appearance:none;
+    border:none;
+    background:transparent;
+    color:var(--cream);
+    opacity:0.65;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    padding:8px 16px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:background .2s ease, opacity .2s ease, color .2s ease;
+  }
+  .range-toggle button:hover{opacity:0.9;}
+  .range-toggle button:focus-visible{outline:2px solid var(--amber-soft);outline-offset:2px;}
+  .range-toggle button.active{
+    background:var(--amber);
+    color:var(--espresso);
+    opacity:1;
+    font-weight:600;
+  }
+
+  /* KPI grid */
+  .kpi-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+    margin-bottom:24px;
+  }
+  .kpi-card{
+    background:var(--card);
+    border:1px solid var(--hairline);
+    border-radius:14px;
+    padding:18px 20px;
+    opacity:0;
+    transform:translateY(8px);
+    animation:rise .5s ease forwards;
+  }
+  .kpi-card:nth-child(1){animation-delay:.02s;}
+  .kpi-card:nth-child(2){animation-delay:.08s;}
+  .kpi-card:nth-child(3){animation-delay:.14s;}
+  .kpi-card:nth-child(4){animation-delay:.20s;}
+  @keyframes rise{to{opacity:1;transform:translateY(0);}}
+  .kpi-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 8px;
+  }
+  .kpi-value{
+    font-family:'Fraunces',serif;
+    font-weight:700;
+    font-size:30px;
+    margin:0 0 6px;
+    color:var(--espresso);
+    line-height:1;
+  }
+  .kpi-delta{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+  }
+  .kpi-delta.up{color:var(--sage);}
+  .kpi-delta.down{color:var(--rust);}
+  .kpi-sub{color:var(--ink-soft);font-weight:400;margin-left:2px;}
+
+  /* Section cards */
+  .card{
+    background:var(--card);
+    border:1px solid var(--hairline);
+    border-radius:14px;
+    padding:22px 24px;
+    margin-bottom:20px;
+    opacity:0;
+    transform:translateY(8px);
+    animation:rise .5s ease forwards;
+    animation-delay:.24s;
+  }
+  .card h2{
+    font-family:'Fraunces',serif;
+    font-size:17px;
+    font-weight:600;
+    margin:0 0 4px;
+    color:var(--espresso);
+  }
+  .card .hint{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin:0 0 16px;
+  }
+
+  .chart-wrap{position:relative;height:260px;}
+
+  .annotation{
+    position:absolute;
+    transform:translate(-50%,-100%);
+    background:var(--espresso);
+    color:var(--cream);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    line-height:1.4;
+    padding:8px 11px;
+    border-radius:8px;
+    max-width:190px;
+    text-align:left;
+    box-shadow:0 6px 16px rgba(43,27,20,0.25);
+    transition:opacity .3s ease;
+    pointer-events:none;
+  }
+  .annotation::after{
+    content:'';
+    position:absolute;
+    left:50%;
+    bottom:-6px;
+    transform:translateX(-50%);
+    border:6px solid transparent;
+    border-top-color:var(--espresso);
+  }
+  .annotation strong{color:var(--amber-soft);}
+
+  .row-2{
+    display:grid;
+    grid-template-columns:1.1fr 1fr;
+    gap:20px;
+  }
+
+  /* Top products custom bars */
+  .product-list{display:flex;flex-direction:column;gap:14px;}
+  .product-row{display:grid;grid-template-columns:170px 1fr 64px;align-items:center;gap:10px;}
+  .product-name{display:flex;align-items:center;gap:8px;font-size:13.5px;}
+  .roast-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .roast-light{background:var(--amber-soft);}
+  .roast-medium{background:var(--amber);}
+  .roast-dark{background:var(--espresso-soft);}
+  .bar-track{background:var(--hairline);border-radius:6px;height:10px;overflow:hidden;}
+  .bar-fill{background:var(--amber);height:100%;border-radius:6px;}
+  .product-value{font-family:'IBM Plex Mono',monospace;font-size:12.5px;text-align:right;color:var(--ink-soft);}
+  .roast-legend{display:flex;gap:14px;margin-top:14px;font-size:11px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+  .roast-legend span{display:inline-flex;align-items:center;gap:5px;}
+
+  /* Donut + legend */
+  .donut-wrap{display:flex;align-items:center;gap:22px;}
+  .donut-canvas-box{width:140px;height:140px;flex-shrink:0;position:relative;}
+  .donut-center{
+    position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;
+  }
+  .donut-center b{font-size:18px;color:var(--espresso);}
+  .donut-center span{font-size:9.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:.05em;}
+  .channel-legend{display:flex;flex-direction:column;gap:10px;flex:1;}
+  .channel-item{display:flex;align-items:center;justify-content:space-between;font-size:13px;}
+  .channel-name{display:flex;align-items:center;gap:8px;}
+  .swatch{width:9px;height:9px;border-radius:50%;}
+  .channel-amount{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);}
+
+  /* Orders table */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{
+    text-align:left;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    padding:0 10px 10px 0;
+    border-bottom:1px solid var(--hairline);
+  }
+  td{padding:11px 10px 11px 0;border-bottom:1px solid var(--hairline);}
+  tr:last-child td{border-bottom:none;}
+  .order-id{font-family:'IBM Plex Mono',monospace;color:var(--ink-soft);font-size:12.5px;}
+  .badge{
+    display:inline-block;
+    font-size:11.5px;
+    font-weight:500;
+    padding:4px 10px;
+    border-radius:999px;
+  }
+  .badge-versendet{background:var(--sage-soft);color:#3F5A35;}
+  .badge-bearbeitung{background:var(--amber-soft);color:#6B4112;}
+  .badge-abgeholt{background:var(--hairline);color:var(--ink-soft);}
+  .amount{font-family:'IBM Plex Mono',monospace;}
+
+  footer.note{
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:8px;
+  }
+
+  @media (max-width:760px){
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .row-2{grid-template-columns:1fr;}
+    .product-row{grid-template-columns:130px 1fr 56px;}
+    header.top{border-radius:0 0 14px 14px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .kpi-card,.card{animation:none;opacity:1;transform:none;}
+  }
+</style>
+</head>
+<body>
+<div class="dashboard">
+
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 22c0-6.6 5.4-12 12-12s12 5.4 12 12-5.4 12-12 12c-3.4 0-6.5-1.4-8.7-3.7" stroke="#C77B3D" stroke-width="2.4" stroke-linecap="round"/>
+        <ellipse cx="16" cy="22" rx="9" ry="11" transform="rotate(-18 16 22)" fill="#C77B3D"/>
+        <path d="M16 12.5C13.5 16 13.5 28 16 31.5" stroke="#2B1B14" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+      <div class="brand-text">
+        <h1>Nordkorn Rösterei</h1>
+        <span>Vertriebs-Dashboard</span>
+      </div>
+    </div>
+    <div class="range-toggle" role="group" aria-label="Zeitraum wählen">
+      <button data-range="7">7 Tage</button>
+      <button data-range="30" class="active">30 Tage</button>
+      <button data-range="90">90 Tage</button>
+    </div>
+  </header>
+
+  <section class="kpi-grid" id="kpiGrid"></section>
+
+  <section class="card">
+    <h2>Umsatzverlauf</h2>
+    <p class="hint" id="chartHint">Tagesumsatz, letzte 30 Tage</p>
+    <div class="chart-wrap">
+      <canvas id="revenueChart"></canvas>
+      <div class="annotation" id="annotation" style="opacity:0;"></div>
+    </div>
+  </section>
+
+  <section class="row-2">
+    <div class="card" style="margin-bottom:0;">
+      <h2>Top Produkte</h2>
+      <p class="hint">Nach Umsatz, letzte 30 Tage</p>
+      <div class="product-list" id="productList"></div>
+      <div class="roast-legend">
+        <span><span class="roast-dot roast-light"></span>Helle Röstung</span>
+        <span><span class="roast-dot roast-medium"></span>Mittlere Röstung</span>
+        <span><span class="roast-dot roast-dark"></span>Dunkle Röstung</span>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:0;">
+      <h2>Vertriebskanäle</h2>
+      <p class="hint">Umsatzanteil, letzte 30 Tage</p>
+      <div class="donut-wrap">
+        <div class="donut-canvas-box">
+          <canvas id="channelChart"></canvas>
+          <div class="donut-center"><b>14.720&nbsp;€</b><span>Gesamt</span></div>
+        </div>
+        <div class="channel-legend" id="channelLegend"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Letzte Bestellungen</h2>
+    <p class="hint">Unabhängig vom gewählten Zeitraum</p>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table>
+      <thead>
+        <tr><th>Bestellung</th><th>Kunde / Kanal</th><th>Datum</th><th>Betrag</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="order-id">#NR-1842</td><td>Café Lindenhof <span style="color:var(--ink-soft);">· Gastronomie</span></td><td>20.06.</td><td class="amount">312,40&nbsp;€</td>
+          <td><span class="badge badge-bearbeitung">In Bearbeitung</span></td>
+        </tr>
+        <tr>
+          <td class="order-id">#NR-1841</td><td>M. Brandt <span style="color:var(--ink-soft);">· Webshop</span></td><td>20.06.</td><td class="amount">42,90&nbsp;€</td>
+          <td><span class="badge badge-versendet">Versendet</span></td>
+        </tr>
+        <tr>
+          <td class="order-id">#NR-1840</td><td>Vor-Ort-Abholung <span style="color:var(--ink-soft);">· Rösterei</span></td><td>19.06.</td><td class="amount">28,50&nbsp;€</td>
+          <td><span class="badge badge-abgeholt">Abgeholt</span></td>
+        </tr>
+        <tr>
+          <td class="order-id">#NR-1839</td><td>Kontorhaus Café <span style="color:var(--ink-soft);">· Gastronomie</span></td><td>19.06.</td><td class="amount">486,00&nbsp;€</td>
+          <td><span class="badge badge-versendet">Versendet</span></td>
+        </tr>
+        <tr>
+          <td class="order-id">#NR-1838</td><td>S. Keller <span style="color:var(--ink-soft);">· Webshop</span></td><td>18.06.</td><td class="amount">64,30&nbsp;€</td>
+          <td><span class="badge badge-versendet">Versendet</span></td>
+        </tr>
+        <tr>
+          <td class="order-id">#NR-1837</td><td>J. Nowak <span style="color:var(--ink-soft);">· Webshop</span></td><td>18.06.</td><td class="amount">37,80&nbsp;€</td>
+          <td><span class="badge badge-bearbeitung">In Bearbeitung</span></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </section>
+
+  <footer class="note">Demo-Dashboard mit Beispieldaten — in wenigen Stunden gebaut, individuell auf Ihre Datenquellen anpassbar. · <a href="impressum.html" style="color:inherit;">Impressum</a></footer>
+</div>
+
+<script>
+const TODAY = new Date(2026,5,20); // 20. Juni 2026
+
+function fmtDate(d){
+  return String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.';
+}
+function lastNDates(n, end){
+  const arr=[];
+  for(let i=n-1;i>=0;i--){
+    const d=new Date(end); d.setDate(d.getDate()-i); arr.push(fmtDate(d));
+  }
+  return arr;
+}
+function isoWeek(d){
+  const date=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const dayNum=date.getUTCDay()||7;
+  date.setUTCDate(date.getUTCDate()+4-dayNum);
+  const yearStart=new Date(Date.UTC(date.getUTCFullYear(),0,1));
+  return Math.ceil((((date-yearStart)/86400000)+1)/7);
+}
+function lastNWeekLabels(n,end){
+  const arr=[];
+  for(let i=n-1;i>=0;i--){
+    const d=new Date(end); d.setDate(d.getDate()-i*7); arr.push('KW '+isoWeek(d));
+  }
+  return arr;
+}
+
+const data30 = [310,460,440,460,480,300,330, 470,490,480,500,520,310,340, 480,500,510,540,1180,520,300, 560,580,560,590,610,330,350, 600,620];
+const data7  = data30.slice(-7);
+const data90 = [2150,2280,2400,2350,2600,2700,2780,2850,3110,3580,3920,3650,3230];
+
+const labels30 = lastNDates(30, TODAY);
+const labels7  = labels30.slice(-7);
+const labels90 = lastNWeekLabels(13, TODAY);
+
+function sum(arr){return arr.reduce((a,b)=>a+b,0);}
+
+const ranges = {
+  '7':  { data:data7,  labels:labels7,  bestellungen:44,  neukunden:6,
+          deltas:{umsatz:6,bestellungen:3,aov:3,neukunden:9}, annotation:false,
+          hint:'Tagesumsatz, letzte 7 Tage' },
+  '30': { data:data30, labels:labels30, bestellungen:187, neukunden:23,
+          deltas:{umsatz:8,bestellungen:4,aov:4,neukunden:15}, annotation:true,
+          hint:'Tagesumsatz, letzte 30 Tage' },
+  '90': { data:data90, labels:labels90, bestellungen:512, neukunden:71,
+          deltas:{umsatz:12,bestellungen:7,aov:-3,neukunden:22}, annotation:false,
+          hint:'Wochenumsatz, letzte 90 Tage' }
+};
+
+const eur = n => n.toLocaleString('de-DE',{minimumFractionDigits:0,maximumFractionDigits:0}) + '\u00A0€';
+const eur2 = n => n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}) + '\u00A0€';
+
+function deltaHtml(value){
+  const up = value >= 0;
+  return `<span class="kpi-delta ${up?'up':'down'}">${up?'▲':'▼'} ${Math.abs(value)}%<span class="kpi-sub">vs. Vorperiode</span></span>`;
+}
+
+function renderKpis(r){
+  const umsatz = sum(r.data);
+  const aov = umsatz / r.bestellungen;
+  const grid = document.getElementById('kpiGrid');
+  grid.innerHTML = `
+    <div class="kpi-card"><p class="kpi-label">Umsatz</p><p class="kpi-value">${eur(umsatz)}</p>${deltaHtml(r.deltas.umsatz)}</div>
+    <div class="kpi-card"><p class="kpi-label">Bestellungen</p><p class="kpi-value">${r.bestellungen}</p>${deltaHtml(r.deltas.bestellungen)}</div>
+    <div class="kpi-card"><p class="kpi-label">Ø Bestellwert</p><p class="kpi-value">${eur2(aov)}</p>${deltaHtml(r.deltas.aov)}</div>
+    <div class="kpi-card"><p class="kpi-label">Neukunden</p><p class="kpi-value">${r.neukunden}</p>${deltaHtml(r.deltas.neukunden)}</div>
+  `;
+}
+
+let revenueChart, channelChart;
+
+function renderRevenueChart(r){
+  const ctx = document.getElementById('revenueChart');
+  const cfg = {
+    type:'line',
+    data:{
+      labels:r.labels,
+      datasets:[{
+        data:r.data,
+        borderColor:'#C77B3D',
+        backgroundColor:'rgba(199,123,61,0.12)',
+        borderWidth:2.5,
+        pointRadius:0,
+        pointHoverRadius:4,
+        tension:0.3,
+        fill:true
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      animation:{duration:500},
+      plugins:{legend:{display:false}, tooltip:{
+        backgroundColor:'#2B1B14',
+        titleFont:{family:'IBM Plex Mono'}, bodyFont:{family:'IBM Plex Mono'},
+        callbacks:{label:(c)=> eur(c.raw)}
+      }},
+      scales:{
+        x:{grid:{display:false}, ticks:{maxTicksLimit:8, font:{family:'IBM Plex Mono', size:10.5}, color:'#7A6C60'}},
+        y:{grid:{color:'rgba(43,27,20,0.07)'}, ticks:{font:{family:'IBM Plex Mono', size:10.5}, color:'#7A6C60', callback:v=>v}}
+      }
+    }
+  };
+  if(revenueChart) revenueChart.destroy();
+  revenueChart = new Chart(ctx, cfg);
+
+  const ann = document.getElementById('annotation');
+  if(r.annotation){
+    const idx = 18, val = 1180;
+    requestAnimationFrame(()=>{
+      const xPix = revenueChart.scales.x.getPixelForValue(idx);
+      const yPix = revenueChart.scales.y.getPixelForValue(val);
+      ann.style.left = xPix + 'px';
+      ann.style.top = (yPix - 14) + 'px';
+      ann.innerHTML = '12.06. · <strong>Cold-Brew-Aktion</strong><br>Tagesrekord 1.180&nbsp;€';
+      ann.style.opacity = '1';
+    });
+  } else {
+    ann.style.opacity = '0';
+  }
+}
+
+const products = [
+  {name:'Hausmischung Klassik', roast:'medium', value:3240},
+  {name:'Cold Brew Sommerröstung', roast:'light', value:2890},
+  {name:'Espresso Intenso', roast:'dark', value:2150},
+  {name:'Single Origin Äthiopien', roast:'light', value:1680},
+  {name:'Bio Filterkaffee Sanft', roast:'medium', value:1240}
+];
+function renderProducts(){
+  const max = Math.max(...products.map(p=>p.value));
+  document.getElementById('productList').innerHTML = products.map(p=>`
+    <div class="product-row">
+      <div class="product-name"><span class="roast-dot roast-${p.roast}"></span>${p.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(p.value/max*100).toFixed(0)}%"></div></div>
+      <div class="product-value">${eur(p.value)}</div>
+    </div>
+  `).join('');
+}
+
+const channels = [
+  {name:'Webshop', value:8538, color:'#C77B3D'},
+  {name:'Gastronomie-Partner', value:3974, color:'#6F8B5E'},
+  {name:'Abholung vor Ort', value:2208, color:'#4A3326'}
+];
+function renderChannels(){
+  if(channelChart) channelChart.destroy();
+  channelChart = new Chart(document.getElementById('channelChart'), {
+    type:'doughnut',
+    data:{labels:channels.map(c=>c.name), datasets:[{data:channels.map(c=>c.value), backgroundColor:channels.map(c=>c.color), borderWidth:0}]},
+    options:{
+      cutout:'72%',
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>eur(c.raw)}}},
+      animation:{duration:500}
+    }
+  });
+  const total = sum(channels.map(c=>c.value));
+  document.getElementById('channelLegend').innerHTML = channels.map(c=>`
+    <div class="channel-item">
+      <div class="channel-name"><span class="swatch" style="background:${c.color}"></span>${c.name}</div>
+      <div class="channel-amount">${eur(c.value)} · ${Math.round(c.value/total*100)}%</div>
+    </div>
+  `).join('');
+}
+
+function setRange(key){
+  document.querySelectorAll('.range-toggle button').forEach(b=>b.classList.toggle('active', b.dataset.range===key));
+  const r = ranges[key];
+  document.getElementById('chartHint').textContent = r.hint;
+  renderKpis(r);
+  renderRevenueChart(r);
+}
+
+document.querySelectorAll('.range-toggle button').forEach(btn=>{
+  btn.addEventListener('click', ()=> setRange(btn.dataset.range));
+});
+
+renderProducts();
+renderChannels();
+setRange('30');
+window.addEventListener('resize', ()=>{
+  const active = document.querySelector('.range-toggle button.active').dataset.range;
+  renderRevenueChart(ranges[active]);
+});
+</script>
+</body>
+</html>
