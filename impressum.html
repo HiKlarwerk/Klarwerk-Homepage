@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Impressum — Klarwerk</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2316232E'/%3E%3Crect x='8' y='18' width='4' height='8' rx='1' fill='%23E8A33D'/%3E%3Crect x='14' y='13' width='4' height='13' rx='1' fill='%23E8A33D'/%3E%3Crect x='20' y='8' width='4' height='18' rx='1' fill='%23E8A33D'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F2F5F7;
+    --card:#FBFCFD;
+    --ink:#16232E;
+    --muted:#5B6B74;
+    --line:#C9D3D8;
+    --grid:rgba(22,35,46,0.055);
+    --amber:#E8A33D;
+    --amber-deep:#B97A1E;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size:28px 28px;
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+  .wrap{max-width:720px;margin:0 auto;padding:0 24px;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  h1,h2{font-family:'Space Grotesk',sans-serif;margin:0;}
+
+  header{
+    background:rgba(242,245,247,0.88);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  header .wrap{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;max-width:1040px;flex-wrap:wrap;gap:8px;}
+  .wordmark{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;letter-spacing:-0.01em;text-decoration:none;}
+  .wordmark span{color:var(--amber-deep);}
+  .back-link{font-size:14px;color:var(--muted);text-decoration:none;}
+  .back-link:hover{color:var(--ink);}
+
+  main{padding:56px 0 80px;}
+  .eyebrow{
+    display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--amber-deep);background:rgba(232,163,61,0.14);
+    padding:5px 10px;border-radius:5px;margin-bottom:16px;
+  }
+  h1{font-size:32px;margin-bottom:32px;}
+  section{margin-bottom:32px;}
+  h2{font-size:16px;margin-bottom:10px;}
+  p{font-size:15px;line-height:1.7;color:var(--ink);margin:0 0 6px;}
+  p.muted{color:var(--muted);font-size:13.5px;}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;
+  }
+  .todo{
+    border:1.5px dashed var(--amber-deep);background:rgba(232,163,61,0.08);
+    border-radius:8px;padding:10px 14px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--amber-deep);margin-top:14px;
+  }
+  footer{border-top:1px solid var(--line);padding:28px 0;text-align:center;}
+  footer p{color:var(--muted);font-size:12.5px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <a class="wordmark" href="index.html">Klar<span>werk</span></a>
+    <a class="back-link" href="index.html">← Zur Startseite</a>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <span class="eyebrow">Rechtliches</span>
+    <h1>Impressum</h1>
+
+    <section class="card">
+      <h2>Angaben gemäß § 5 DDG</h2>
+      <p>Maysl's</p>
+      <p>Inhaber: Marcel Schorb</p>
+      <p class="muted">(tätig unter der Bezeichnung „Klarwerk")</p>
+      <p>Ahornstr. 27</p>
+      <p>85774 Unterföhring</p>
+    </section>
+
+    <section class="card">
+      <h2>Kontakt</h2>
+      <p>Telefon: +49 1525 6484066</p>
+      <p>E-Mail: <a href="mailto:kontakt.klarwerk@gmail.com">kontakt.klarwerk@gmail.com</a></p>
+    </section>
+
+    <section class="card">
+      <h2>Umsatzsteuer</h2>
+      <p>Gemäß § 19 Abs. 1 UStG (Kleinunternehmerregelung) wird keine Umsatzsteuer berechnet und somit auch nicht ausgewiesen.</p>
+    </section>
+
+    <section class="card">
+      <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+      <p>Marcel Schorb</p>
+      <p>Ahornstr. 27, 85774 Unterföhring</p>
+    </section>
+
+    <section class="card">
+      <h2>Haftung für Inhalte</h2>
+      <p>Die Inhalte dieser Seite wurden mit Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität kann jedoch keine Gewähr übernommen werden. Als Diensteanbieter bin ich für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich, nicht jedoch verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen.</p>
+    </section>
+
+    <section class="card">
+      <h2>Haftung für Links</h2>
+      <p>Diese Website enthält Links zu externen Seiten Dritter, auf deren Inhalte kein Einfluss besteht. Für diese fremden Inhalte kann daher keine Verantwortung übernommen werden; verantwortlich ist stets der jeweilige Anbieter der verlinkten Seite. Bei Bekanntwerden von Rechtsverletzungen werden entsprechende Links umgehend entfernt.</p>
+    </section>
+
+    <section class="card">
+      <h2>Urheberrecht</h2>
+      <p>Die durch den Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechts bedürfen der schriftlichen Zustimmung des jeweiligen Autors.</p>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="mono">© 2026 Klarwerk · Stand: Juni 2026</p>
+  </div>
+</footer>
+
+</body>
+</html>
