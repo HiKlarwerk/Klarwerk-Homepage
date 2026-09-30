@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Klarwerk — Prozesszentrale für betriebliche Abläufe</title>
+<meta name="description" content="Klarwerk verbindet Prozesse, Ressourcen und Zuständigkeiten in einer gemeinsamen Arbeitsoberfläche.">
+<script>
+{
+  const storageKey='klarwerk-theme';
+  let theme='light';
+  try{
+    const stored=localStorage.getItem(storageKey);
+    theme=stored==='light'||stored==='dark'?stored:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  }catch(error){
+    theme=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  }
+  document.documentElement.dataset.theme=theme;
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;family=DM+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f6f7f8;--surface:#ffffff;--surface-2:#eceff2;--surface-3:#e2e6ea;
+  --text:#11151a;--muted:#5c646d;--line:#cfd4d9;--line-strong:#1b2026;
+  --header:rgba(255,255,255,.94);--inverse:#11151a;--inverse-text:#f7f8fa;--inverse-muted:#aeb7c1;
+  --blue:#2357ff;--orange:#ff6b35;--lime:#c8f135;--blue-soft:#e9eeff;--orange-soft:#fff0e9;
+  --shadow:0 28px 68px rgba(17,21,26,.17);--content:1220px;--radius:16px;--section:98px;--motion:.18s;
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#090b0e;--surface:#111419;--surface-2:#171b21;--surface-3:#222831;
+  --text:#f1f3f5;--muted:#a3abb5;--line:#30363f;--line-strong:#d8dde3;
+  --header:rgba(9,11,14,.94);--inverse:#f1f3f5;--inverse-text:#11151a;--inverse-muted:#535b65;
+  --blue:#5c7cff;--orange:#ff7545;--lime:#c8f135;--blue-soft:#182342;--orange-soft:#2b1b16;
+  --shadow:0 28px 70px rgba(0,0,0,.48);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background-color var(--motion),color var(--motion)}
+body.menu-open{overflow:hidden}
+a{color:inherit}
+button{font:inherit;color:inherit}
+iframe{display:block}
+.wrap{width:min(var(--content),calc(100% - 44px));margin-inline:auto}
+.skip{position:absolute;left:-9999px}
+.skip:focus{left:12px;top:12px;z-index:100;background:var(--surface);padding:10px 14px;border:2px solid var(--text)}
+:where(a,button):focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+section[id]{scroll-margin-top:108px}
+.site-header{position:sticky;top:0;z-index:60;border-bottom:1px solid var(--line);background:var(--header);backdrop-filter:blur(14px)}
+.nav{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{font-size:21px;font-weight:700;letter-spacing:-.04em;text-decoration:none}
+.brand i{display:inline-block;width:9px;height:9px;margin-left:2px;border-radius:50%;background:var(--orange)}
+.nav-links{display:flex;align-items:center;gap:23px;margin-left:auto}
+.nav-links a{color:var(--muted);font-size:14px;text-decoration:none}
+.nav-links a:hover{color:var(--text)}
+.nav-links .nav-contact{padding:10px 16px;border-radius:999px;background:var(--text);color:var(--bg)}
+.header-controls{display:flex;align-items:center;gap:9px}
+.theme-switch{position:relative;display:inline-grid;grid-template-columns:1fr 1fr;align-items:center;width:58px;height:30px;padding:0 5px;border:1px solid var(--line);border-radius:999px;background:var(--surface-2);color:var(--muted);cursor:pointer}
+.theme-switch:hover{border-color:var(--text)}
+.theme-symbol{position:relative;z-index:2;display:grid;place-items:center;line-height:1;transition:color var(--motion)}
+.theme-symbol svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.theme-symbol--sun{color:var(--text)}
+.theme-symbol--moon{color:var(--muted)}
+.theme-thumb{position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:var(--surface);box-shadow:0 1px 4px rgba(17,21,26,.2);transition:transform var(--motion),background-color var(--motion)}
+:root[data-theme="dark"] .theme-thumb{transform:translateX(28px);background:var(--surface-3)}
+:root[data-theme="dark"] .theme-symbol--sun{color:var(--muted)}
+:root[data-theme="dark"] .theme-symbol--moon{color:var(--text)}
+.menu-toggle{display:none;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:8px 11px;border:1px solid var(--line);border-radius:999px;background:var(--surface);cursor:pointer}
+.menu-toggle:hover{border-color:var(--text)}
+.menu-icon{position:relative;width:17px;height:12px;border-block:2px solid currentColor}
+.menu-icon::after{content:'';position:absolute;left:0;top:4px;width:100%;border-top:2px solid currentColor}
+.business-notice{border-bottom:1px solid var(--line);background:var(--surface)}
+.business-notice .wrap{display:flex;gap:18px;padding:13px 0;align-items:flex-start}
+.business-notice strong{flex:0 0 auto;padding-left:10px;border-left:3px solid var(--blue);font:600 10px 'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase}
+.business-notice p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}
+
+.hero{padding:66px 0 82px;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:minmax(370px,.72fr) minmax(520px,1.18fr);gap:43px;align-items:center}
+.kicker,.eyebrow{font:500 10px 'DM Mono',monospace;letter-spacing:.09em;text-transform:uppercase}
+.kicker{display:flex;align-items:center;gap:10px;margin-bottom:25px}
+.kicker::before{content:'';width:28px;border-top:3px solid var(--orange)}
+h1,h2,h3,p{margin-top:0}
+.hero h1{margin-bottom:27px;font-size:clamp(59px,6.7vw,91px);line-height:.89;letter-spacing:-.077em}
+.hero h1 span{color:var(--blue)}
+.hero-copy{max-width:590px;margin-bottom:0;color:var(--muted);font-size:18px;line-height:1.62}
+.hero-questions{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 0;padding:0;list-style:none}
+.hero-questions li{padding:7px 9px;border-bottom:1px solid var(--line);color:var(--text);font-size:12px;font-weight:600}
+.hero-actions{display:flex;gap:11px;flex-wrap:wrap;margin-top:28px}
+.button{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:12px 18px;border:1px solid var(--text);border-radius:999px;font-size:14px;font-weight:600;text-decoration:none;transition:transform var(--motion),box-shadow var(--motion)}
+.button:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(16,19,26,.13)}
+.button.primary{border-color:var(--blue);background:var(--blue);color:#fff}
+.hero-visual{position:relative;min-width:0;margin-right:-84px;padding:11px 0 30px 11px}
+.hero-frame{position:relative;overflow:hidden;height:520px;border:1px solid var(--line-strong);border-radius:16px 0 0 16px;background:#e8ebee;box-shadow:var(--shadow);transform:rotate(-.3deg)}
+.browser-bar{height:34px;display:flex;align-items:center;gap:6px;padding:0 13px;border-bottom:1px solid #ccd1d8;background:#f8f8f6;color:#6f7780}
+.browser-bar i{width:7px;height:7px;border-radius:50%;background:#b9bec5}
+.browser-bar i:first-child{background:#ff6b35}
+.browser-bar span{margin-left:auto;font:500 8px 'DM Mono',monospace;letter-spacing:.08em;text-transform:uppercase}
+.hero-view{position:relative;height:486px;overflow:hidden;background:#eef0f2}
+.hero-view iframe{position:absolute;left:0;top:0;width:1440px;height:900px;border:0;transform:scale(.55);transform-origin:top left;pointer-events:none}
+.hero-caption{position:absolute;left:-14px;bottom:0;display:flex;align-items:center;gap:9px;padding:11px 14px;border:1px solid var(--line-strong);background:var(--surface);color:var(--text);font:500 10px 'DM Mono',monospace;box-shadow:6px 7px 0 var(--line-strong)}
+.hero-caption i{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 3px rgba(200,241,53,.22)}
+
+.strengths{padding:0 0 92px}
+.strengths-shell{display:grid;grid-template-columns:repeat(4,1fr);border-block:1px solid var(--line-strong)}
+.strength{min-width:0;padding:28px 25px}
+.strength+.strength{border-left:1px solid var(--line)}
+.strength span{display:block;margin-bottom:36px;color:var(--blue);font:500 9px 'DM Mono',monospace}
+.strength h2{margin-bottom:9px;font-size:21px;letter-spacing:-.03em}
+.strength p{margin:0;color:var(--muted);font-size:13px;line-height:1.52}
+.strength-note{display:flex;justify-content:space-between;gap:25px;margin-top:18px;color:var(--muted);font-size:12px;line-height:1.5}
+.strength-note strong{color:var(--text)}
+
+.process{padding:var(--section) 0;background:var(--surface)}
+.section-head{display:grid;grid-template-columns:.32fr 1fr;gap:34px;align-items:start;margin-bottom:44px}
+.eyebrow{color:var(--muted)}
+.section-head h2{max-width:890px;margin:0;font-size:clamp(40px,5.2vw,64px);line-height:.97;letter-spacing:-.058em}
+.journey{display:grid;grid-template-columns:repeat(6,1fr);border-block:1px solid var(--line-strong)}
+.journey-step{position:relative;min-width:0;padding:25px 20px 27px 0}
+.journey-step+.journey-step{padding-left:20px;border-left:1px solid var(--line)}
+.journey-step:not(:last-child)::after{content:'→';position:absolute;right:-10px;top:25px;z-index:2;width:20px;background:var(--surface);color:var(--blue);text-align:center;font-weight:700}
+.journey-step span{display:block;margin-bottom:40px;color:var(--blue);font:500 9px 'DM Mono',monospace}
+.journey-step strong{display:block;font-size:14px;line-height:1.38}
+.journey-step small{display:block;margin-top:7px;color:var(--muted);font-size:11px;line-height:1.4}
+.work-context{display:flex;justify-content:space-between;gap:25px;align-items:center;margin-top:24px}
+.work-context p{margin:0;color:var(--muted);font-size:13px}
+.work-context p strong{color:var(--text)}
+.areas{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.areas span{padding:7px 10px;border:1px solid var(--line);background:var(--bg);font:500 9px 'DM Mono',monospace}
+
+.resource-focus{padding:var(--section) 0;background:var(--bg)}
+.resource-layout{display:grid;grid-template-columns:minmax(300px,.62fr) minmax(0,1fr);gap:70px;align-items:start}
+.resource-copy{position:sticky;top:120px}
+.resource-copy h2{margin:14px 0 18px;font-size:clamp(39px,4.7vw,58px);line-height:.98;letter-spacing:-.055em}
+.resource-copy p{color:var(--muted);font-size:16px;line-height:1.65}
+.resource-logic{border-top:1px solid var(--line-strong)}
+.resource-row{display:grid;grid-template-columns:105px 1fr;gap:24px;padding:25px 0;border-bottom:1px solid var(--line)}
+.resource-row span{color:var(--blue);font:500 10px 'DM Mono',monospace;text-transform:uppercase}
+.resource-row strong{display:block;margin-bottom:6px;font-size:19px}
+.resource-row p{margin:0;color:var(--muted);font-size:13px;line-height:1.52}
+.resource-caveat{margin-top:17px;padding-left:13px;border-left:3px solid var(--orange);color:var(--muted);font-size:12px;line-height:1.5}
+
+.product{padding:var(--section) 0;background:var(--surface-2);overflow:hidden}
+.product-top{display:flex;justify-content:space-between;gap:45px;align-items:end;margin-bottom:29px}
+.product-top h2{max-width:770px;margin:12px 0 0;font-size:clamp(40px,5.2vw,64px);line-height:.97;letter-spacing:-.058em}
+.product-top p{max-width:430px;margin:0;color:var(--muted);font-size:14px;line-height:1.6}
+.product-window{position:relative;padding:10px;border:1px solid #363e49;border-radius:17px;background:#202630;box-shadow:var(--shadow)}
+.product-demo-link{position:absolute;inset:0;border-radius:17px;text-decoration:none}
+.product-demo-link span{position:absolute;top:19px;right:24px;color:#2357ff;font:500 9px 'DM Mono',monospace;letter-spacing:.07em}
+.product-demo-link:hover{box-shadow:inset 0 0 0 2px var(--blue)}
+.product-demo-link:focus-visible{outline-offset:5px}
+.product-view{position:relative;height:650px;overflow:hidden;background:#eef0f2}
+.product-view iframe{position:absolute;left:0;top:0;width:1440px;height:900px;border:0;transform:scale(.83);transform-origin:top left;pointer-events:none}
+.product-footer{display:flex;justify-content:space-between;gap:18px;align-items:center;margin-top:18px}
+.product-note{display:flex;align-items:center;gap:9px;color:var(--muted);font:500 10px 'DM Mono',monospace}
+.product-note i{width:8px;height:8px;border-radius:50%;background:var(--blue)}
+.product-link{font-size:13px;font-weight:600;text-underline-offset:4px}
+.maturity-note{margin-top:25px;padding:16px 19px;border-left:3px solid var(--blue);background:var(--surface);color:var(--muted);font-size:13px;line-height:1.55}
+.maturity-note strong{color:var(--text)}
+
+.updates{padding:78px 0;background:var(--bg)}
+.updates-head{display:flex;justify-content:space-between;gap:30px;align-items:end;margin-bottom:25px}
+.updates-head h2{margin:12px 0 0;font-size:clamp(34px,4vw,48px);line-height:1;letter-spacing:-.05em}
+.updates-head p{max-width:460px;margin:0;color:var(--muted);font-size:13px;line-height:1.55}
+.update-entry{display:grid;grid-template-columns:150px minmax(260px,.85fr) minmax(0,1fr);gap:30px;padding:28px 0;border-block:1px solid var(--line-strong)}
+.update-meta{font:500 10px/1.6 'DM Mono',monospace;text-transform:uppercase}
+.update-meta time{display:block;color:var(--blue)}
+.update-meta span{color:var(--muted)}
+.update-entry h3{margin:0;font-size:25px;letter-spacing:-.035em}
+.update-body p{margin:0;color:var(--muted);font-size:14px;line-height:1.6}
+.update-tech{display:flex;gap:7px;flex-wrap:wrap;margin-top:15px}
+.update-tech span{padding:6px 8px;border:1px solid var(--line);font:500 9px 'DM Mono',monospace}
+.test-status{display:inline-flex;align-items:center;gap:8px;margin-top:16px;color:var(--text);font:500 10px 'DM Mono',monospace}
+.test-status i{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 3px rgba(200,241,53,.18)}
+
+.gallery-section{padding:var(--section) 0;background:#11151a;color:#f3f5f7}
+:root[data-theme="dark"] .gallery-section{background:#050608}
+.gallery-section .eyebrow{color:#9ca6b1}
+.gallery-section .section-head{margin-bottom:31px}
+.gallery-intro{max-width:700px;margin:-14px 0 38px auto;color:#aeb7c2;font-size:14px;line-height:1.6}
+.gallery{display:grid;grid-template-columns:1.2fr .8fr;grid-template-rows:repeat(2,315px);gap:14px}
+.demo-card{position:relative;min-width:0;display:grid;overflow:hidden;border:1px solid #3e4753;border-radius:15px;background:#171c24}
+.demo-card:hover,.demo-card:focus-within{border-color:var(--orange)}
+.demo-card:focus-within{outline:3px solid var(--orange);outline-offset:3px}
+.demo-copy a::after{content:'';position:absolute;inset:0}
+.demo-card.main{grid-row:1/3;grid-template-rows:minmax(0,1fr) auto}
+.demo-card.side{grid-template-columns:minmax(0,1.2fr) minmax(170px,.8fr)}
+.demo-preview{position:relative;min-width:0;overflow:hidden;background:#eef0f2}
+.demo-preview iframe{position:absolute;left:0;top:0;width:1180px;height:760px;border:0;transform-origin:top left;pointer-events:none}
+.demo-card.main .demo-preview iframe{transform:scale(.56)}
+.demo-card.side .demo-preview iframe{transform:scale(.33)}
+.demo-copy{padding:21px 22px}
+.demo-card.side .demo-copy{display:flex;flex-direction:column;justify-content:center;padding:19px}
+.demo-type{display:block;margin-bottom:8px;color:#99a5b1;font:500 9px 'DM Mono',monospace;letter-spacing:.07em;text-transform:uppercase}
+.demo-copy h3{margin-bottom:7px;font-size:21px}
+.demo-copy p{margin:0;color:#aeb7c2;font-size:12px;line-height:1.5}
+.demo-copy a{display:inline-block;margin-top:12px;color:#fff;font-size:12px;font-weight:600;text-underline-offset:3px}
+.demo-card.main .demo-copy{display:grid;grid-template-columns:1fr max-content;gap:8px 25px;align-items:end}
+.demo-card.main .demo-copy .demo-type{grid-column:1/-1;margin:0}
+.demo-card.main .demo-copy p{max-width:500px}
+.demo-card.main .demo-copy a{grid-column:2;grid-row:2/4;margin:0}
+
+.contact{padding:82px 0;background:var(--blue);color:#fff}
+.contact-grid{display:grid;grid-template-columns:1fr minmax(300px,.48fr);gap:75px;align-items:end}
+.contact h2{max-width:790px;margin:12px 0 18px;font-size:clamp(42px,5.4vw,67px);line-height:.96;letter-spacing:-.062em}
+.contact p{max-width:650px;margin:0;color:#e3e8ff;font-size:15px;line-height:1.62}
+.contact-card{padding:24px;border-top:2px solid #fff;background:rgba(9,11,14,.15)}
+.contact-card strong{display:block;margin-bottom:8px;font-size:15px}
+.contact-card p{font-size:12px}
+.contact-card a{display:inline-flex;margin-top:18px;padding:11px 15px;border-radius:999px;background:#fff;color:#11151a;font-size:13px;font-weight:600;text-decoration:none}
+footer{padding:27px 0;background:#090b0e;color:#9aa4b0;font-size:12px}
+.footer-row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+footer a{color:#fff}
+
+/* V4: ausschließlich Light-spezifische Flächenführung; Dark bleibt auf V3-Basis. */
+:root:not([data-theme="dark"]){
+  --bg:#e9edf1;--surface:#ffffff;--surface-2:#f3f5f7;--surface-3:#dde3e8;
+  --line:#c5ccd3;--shadow:0 18px 42px rgba(17,21,26,.11);
+}
+:root:not([data-theme="dark"]) .hero{background:#f8f9fa;border-bottom:1px solid var(--line)}
+:root:not([data-theme="dark"]) .hero-questions{max-width:570px;padding:7px 10px;border:0;border-left:3px solid var(--blue);background:#e1e6ec}
+:root:not([data-theme="dark"]) .hero-questions li{border-bottom:0;background:transparent}
+:root:not([data-theme="dark"]) .hero-questions li+li{border-left:1px solid #c2cad2}
+:root:not([data-theme="dark"]) .strengths{padding-top:36px;background:#e9edf1}
+:root:not([data-theme="dark"]) .strengths-shell{border:0;border-block:1px solid #b9c2cb;background:#fff;box-shadow:none}
+:root:not([data-theme="dark"]) .strength-note{padding:15px 17px;border-left:3px solid var(--blue);background:#dce3ea}
+:root:not([data-theme="dark"]) .process{background:#f3f5f7}
+:root:not([data-theme="dark"]) .journey{border:0;border-block:1px solid #b9c2cb;background:#fff;box-shadow:none}
+:root:not([data-theme="dark"]) .journey-step:not(:last-child)::after{background:#fff}
+:root:not([data-theme="dark"]) .work-context{padding:16px 18px;border:0;background:#e2e7ec}
+:root:not([data-theme="dark"]) .areas span{background:#fff}
+:root:not([data-theme="dark"]) .resource-focus{background:#e3e7eb}
+:root:not([data-theme="dark"]) .resource-copy{padding:24px 26px;border-left:4px solid var(--blue);background:rgba(255,255,255,.72);box-shadow:none}
+:root:not([data-theme="dark"]) .resource-logic{border:0;border-block:1px solid #b9c2cb;background:rgba(255,255,255,.86);box-shadow:none}
+:root:not([data-theme="dark"]) .resource-row{padding-inline:16px}
+:root:not([data-theme="dark"]) .resource-caveat{padding:12px 0 12px 14px;border-left:3px solid var(--orange);background:transparent}
+:root:not([data-theme="dark"]) .product{background:#f3f5f7}
+:root:not([data-theme="dark"]) .maturity-note{border:0;border-left:4px solid var(--blue);box-shadow:none}
+:root:not([data-theme="dark"]) .updates{background:#dfe5ea}
+:root:not([data-theme="dark"]) .update-entry{padding-inline:20px;border:0;border-block:1px solid #b9c2cb;background:rgba(255,255,255,.86);box-shadow:none}
+:root:not([data-theme="dark"]) .update-tech span{background:#f3f5f7}
+
+@media(max-width:1100px){
+  .hero-grid{grid-template-columns:minmax(330px,.72fr) minmax(470px,1fr);gap:28px}
+  .hero-visual{margin-right:-55px}
+  .hero-frame{height:470px}
+  .hero-view{height:436px}
+  .hero-view iframe{transform:scale(.5)}
+  .product-view{height:570px}
+  .product-view iframe{transform:scale(.72)}
+  .gallery{grid-template-columns:1fr 1fr}
+  .demo-card.side{grid-template-columns:1fr}
+  .demo-card.side .demo-preview{min-height:175px}
+}
+@media(max-width:900px){
+  .hero-grid{grid-template-columns:1fr}
+  .hero-copy{max-width:700px}
+  .hero-visual{margin:4px -44px 0 30px}
+  .hero-frame{height:510px}
+  .hero-view{height:476px}
+  .hero-view iframe{transform:scale(.6)}
+  .strengths-shell{grid-template-columns:repeat(2,1fr)}
+  .strength:nth-child(3){border-left:0;border-top:1px solid var(--line)}
+  .strength:nth-child(4){border-top:1px solid var(--line)}
+  .journey{grid-template-columns:repeat(3,1fr)}
+  .journey-step:nth-child(4){border-left:0}
+  .journey-step:nth-child(n+4){border-top:1px solid var(--line)}
+  .journey-step:nth-child(3)::after{display:none}
+  .resource-layout{grid-template-columns:1fr;gap:36px}
+  .resource-copy{position:static}
+  .product-top{align-items:start;flex-direction:column;gap:16px}
+  .product-view{height:500px}
+  .product-view iframe{transform:scale(.62)}
+  .update-entry{grid-template-columns:130px 1fr}
+  .update-body{grid-column:2}
+  .gallery{grid-template-columns:1fr;grid-template-rows:520px 330px 330px}
+  .demo-card.main{grid-row:auto}
+  .demo-card.side{grid-template-columns:1.15fr .85fr}
+  .demo-card.side .demo-preview{min-height:0}
+  .demo-card.main .demo-preview iframe{transform:scale(.62)}
+  .demo-card.side .demo-preview iframe{transform:scale(.4)}
+  .contact-grid{grid-template-columns:1fr;gap:38px}
+}
+@media(max-width:760px){
+  :root{--section:74px}
+  .nav-links{position:fixed;left:0;right:0;top:102px;display:none;align-items:stretch;flex-direction:column;gap:0;padding:12px 20px 24px;border-bottom:1px solid var(--line-strong);background:var(--bg);box-shadow:var(--shadow)}
+  .nav-links[data-open="true"]{display:flex}
+  .nav-links a{padding:15px 5px;border-bottom:1px solid var(--line);font-size:16px}
+  .nav-links .nav-contact{margin-top:12px;border-bottom:0;text-align:center}
+  .menu-toggle{display:inline-flex}
+  .business-notice .wrap{display:grid;gap:7px}
+  .hero{padding-top:48px}
+  .hero h1{font-size:clamp(57px,13vw,80px)}
+  .hero-visual{margin:5px -22px 0 13px;padding-bottom:27px}
+  .hero-frame{height:440px}
+  .hero-view{height:406px}
+  .hero-view iframe{width:760px;height:900px;transform:scale(.55)}
+  .hero-caption{left:-10px;font-size:9px}
+  .section-head{grid-template-columns:1fr;gap:13px}
+  .section-head h2{font-size:44px}
+  .work-context{align-items:flex-start;flex-direction:column}
+  .areas{justify-content:flex-start}
+  .product-view{height:420px}
+  .product-view iframe{width:760px;height:900px;transform:scale(.54)}
+  .product-footer{align-items:flex-start;flex-direction:column}
+  .updates-head{align-items:flex-start;flex-direction:column;gap:12px}
+  .gallery-intro{margin:0 0 31px}
+  .gallery{grid-template-rows:470px 410px 410px}
+  .demo-card.side{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}
+  .demo-card.side .demo-preview iframe,.demo-card.main .demo-preview iframe{width:760px;height:900px;transform:scale(.5)}
+  .demo-card.main .demo-copy{display:block}
+  .demo-card.main .demo-copy a{margin-top:12px}
+}
+@media(max-width:560px){
+  .wrap{width:calc(100% - 24px)}
+  .nav{min-height:64px;gap:9px}
+  .brand{margin-right:auto}
+  .header-controls{gap:6px}
+  .theme-switch{width:54px;height:28px;padding-inline:4px}
+  .theme-thumb{width:20px;height:20px}
+  :root[data-theme="dark"] .theme-thumb{transform:translateX(26px)}
+  .nav-links{top:94px;padding-inline:12px}
+  .hero{padding:42px 0 60px}
+  .hero h1{font-size:53px}
+  .hero-copy{font-size:16px}
+  .hero-questions{display:grid;gap:3px}
+  .hero-questions li{padding-inline:0}
+  :root:not([data-theme="dark"]) .hero-questions li+li{border-left:0;border-top:1px solid #c2cad2}
+  .hero-actions{display:grid}
+  .button{width:100%}
+  .hero-visual{margin:10px -12px 0 0;padding-left:0}
+  .hero-frame{height:415px;border-radius:12px 0 0 12px;transform:none}
+  .hero-view{height:381px}
+  .hero-view iframe{width:390px;height:780px;transform:scale(.87)}
+  .hero-caption{left:8px;max-width:calc(100% - 16px);white-space:normal;box-shadow:4px 5px 0 var(--line-strong)}
+  .strengths{padding-bottom:69px}
+  .strengths-shell{grid-template-columns:1fr}
+  .strength+.strength{border-left:0;border-top:1px solid var(--line)}
+  .strength{padding:21px 4px}
+  .strength span{margin-bottom:13px}
+  .strength-note{display:block}
+  .section-head h2{font-size:39px}
+  .journey{grid-template-columns:1fr}
+  .journey-step,.journey-step+.journey-step{display:grid;grid-template-columns:30px 1fr;gap:4px 10px;padding:17px 0;border-left:0;border-top:1px solid var(--line)}
+  .journey-step:first-child{border-top:0}
+  .journey-step span{grid-row:1/3;margin:3px 0 0}
+  .journey-step small{margin-top:1px}
+  .journey-step:not(:last-child)::after,.journey-step:nth-child(3)::after{content:'↓';display:block;left:4px;right:auto;top:auto;bottom:-10px;background:var(--surface)}
+  .resource-row{grid-template-columns:1fr;gap:8px}
+  .resource-caveat{font-size:11px}
+  .product-view{height:430px}
+  .product-view iframe{width:390px;height:780px;transform:scale(.88)}
+  .update-entry{grid-template-columns:1fr;gap:15px}
+  .update-body{grid-column:auto}
+  .update-entry h3{font-size:22px}
+  .gallery{grid-template-rows:465px 420px 420px}
+  .demo-card.main,.demo-card.side{grid-template-rows:minmax(0,1fr) auto}
+  .demo-card .demo-preview iframe,.demo-card.side .demo-preview iframe,.demo-card.main .demo-preview iframe{width:390px;height:780px;transform:scale(.85)}
+  .demo-copy{padding:17px}
+  .contact{padding:64px 0}
+  .contact h2{font-size:41px}
+}
+@media(max-width:390px){
+  .brand{font-size:19px}
+  .menu-toggle{width:40px;padding:8px}
+  .menu-toggle span:last-child{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .hero h1{font-size:49px}
+  .hero-frame{height:380px}
+  .hero-view{height:346px}
+  .hero-view iframe{transform:scale(.79)}
+  .product-view{height:400px}
+  .product-view iframe{transform:scale(.8)}
+  .gallery{grid-template-rows:440px 395px 395px}
+  .demo-card .demo-preview iframe,.demo-card.side .demo-preview iframe,.demo-card.main .demo-preview iframe{transform:scale(.77)}
+  .contact h2{font-size:38px}
+}
+@media(max-width:340px){
+  .wrap{width:calc(100% - 20px)}
+  .nav{gap:5px}
+  .header-controls{gap:4px}
+  .hero h1{font-size:45px}
+  .hero-frame{height:350px}
+  .hero-view{height:316px}
+  .hero-view iframe{transform:scale(.72)}
+  .hero-caption{font-size:8px}
+  .section-head h2{font-size:35px}
+  .product-view{height:370px}
+  .product-view iframe{transform:scale(.73)}
+  .gallery{grid-template-rows:415px 370px 370px}
+  .demo-card .demo-preview iframe,.demo-card.side .demo-preview iframe,.demo-card.main .demo-preview iframe{transform:scale(.7)}
+  .contact h2{font-size:35px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{scroll-behavior:auto!important;transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+<header class="site-header">
+  <div class="wrap nav">
+    <a class="brand" href="#top" aria-label="Klarwerk Start">Klarwerk<i aria-hidden="true"></i></a>
+    <nav class="nav-links" id="site-nav" aria-label="Hauptnavigation" data-open="false">
+      <a href="#prozess">Prozesse</a>
+      <a href="#ressourcen">Ressourcen</a>
+      <a href="#produkt">Prozesszentrale</a>
+      <a href="#updates">Entwicklung</a>
+      <a href="#demos">Demos</a>
+      <a class="nav-contact" href="#kontakt">Kontakt</a>
+    </nav>
+    <div class="header-controls">
+      <button class="theme-switch" type="button" role="switch" aria-label="Dunkle Darstellung aktivieren" aria-checked="false"><span class="theme-symbol theme-symbol--sun" aria-hidden="true"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="3"></circle><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.4 1.4M11.55 11.55l1.4 1.4M12.95 3.05l-1.4 1.4M4.45 11.55l-1.4 1.4"></path></svg></span><span class="theme-symbol theme-symbol--moon" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M12.8 10.6A6 6 0 0 1 5.4 3.2 6 6 0 1 0 12.8 10.6Z"></path></svg></span><span class="theme-thumb" aria-hidden="true"></span></button>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="menu-icon" aria-hidden="true"></span><span>Menü</span></button>
+    </div>
+  </div>
+</header>
+<aside class="business-notice" aria-label="Aktueller Betriebsstatus"><div class="wrap"><strong>Aktueller Hinweis</strong><p>Aus gesundheitlichen Gründen findet derzeit kein Verkauf statt; neue Aufträge werden nicht angenommen. Website und Demonstratoren dienen der Präsentation und Weiterentwicklung. Kontakt ist weiterhin möglich.</p></div></aside>
+
+<main id="main">
+<section class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kicker">Prozesse, Menschen und Ressourcen im Zusammenhang</div>
+      <h1>Der Betrieb.<br><span>Nur klarer.</span></h1>
+      <p class="hero-copy">Klarwerk verbindet Abläufe, Ressourcen und Zuständigkeiten in einer gemeinsamen Arbeitsoberfläche. So wird sichtbar, was läuft, wo es hängt und was als Nächstes entschieden werden muss.</p>
+      <ul class="hero-questions" aria-label="Zentrale betriebliche Fragen"><li>Was läuft gerade?</li><li>Wer wird wo gebraucht?</li><li>Was folgt als Nächstes?</li></ul>
+      <div class="hero-actions"><a class="button primary" href="klarwerk-prozesszentrale.html">Klarwerk ansehen →</a><a class="button" href="#prozess">Prozesslogik verstehen</a></div>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-frame"><div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i><span>Klarwerk / Operative Übersicht</span></div><div class="hero-view"><iframe src="klarwerk-prozesszentrale.html" title="Reale Vorschau der operativen Klarwerk Prozesszentrale" tabindex="-1" scrolling="no" loading="eager"></iframe></div></div>
+      <div class="hero-caption"><i aria-hidden="true"></i>Gemeinsamer Blick auf Projekte, Service, Aufgaben und Ressourcen</div>
+    </div>
+  </div>
+</section>
+
+<section class="strengths" aria-labelledby="strengthsTitle">
+  <div class="wrap">
+    <h2 id="strengthsTitle" class="skip">Kernlogik der Klarwerk Prozesszentrale</h2>
+    <div class="strengths-shell">
+      <article class="strength"><span>01</span><h2>Ressourcen</h2><p>Bedarf, Verfügbarkeit und Qualifikation gemeinsam betrachten.</p></article>
+      <article class="strength"><span>02</span><h2>Prozesse</h2><p>Zustand, fehlende Schritte und Verantwortliche sichtbar halten.</p></article>
+      <article class="strength"><span>03</span><h2>Planung</h2><p>Mitarbeiter, Termine und Aufgaben über Bereiche hinweg abstimmen.</p></article>
+      <article class="strength"><span>04</span><h2>Auswertung</h2><p>Engpässe und Abweichungen mit konkretem Handlungsbedarf verbinden.</p></article>
+    </div>
+    <div class="strength-note"><strong>Eine Produktlogik, keine vier Einzellösungen.</strong><span>Die bereichsübergreifende Planung ist ein Zielbild der Prozesszentrale und wird nicht pauschal als vollständig produktiv ausgegeben.</span></div>
+  </div>
+</section>
+
+<section class="process" id="prozess">
+  <div class="wrap">
+    <div class="section-head"><div class="eyebrow">Gemeinsame Prozesslogik</div><h2>Jeder Vorgang braucht Zustand, Zuständigkeit und einen nächsten Schritt.</h2></div>
+    <div class="journey" aria-label="Allgemeiner betrieblicher Ablauf">
+      <div class="journey-step"><span>01</span><strong>Eingang / Auftrag</strong><small>Was kommt neu in den Betrieb?</small></div>
+      <div class="journey-step"><span>02</span><strong>Planung</strong><small>Wann und in welchem Kontext?</small></div>
+      <div class="journey-step"><span>03</span><strong>Ressourcenzuordnung</strong><small>Wer oder was wird gebraucht?</small></div>
+      <div class="journey-step"><span>04</span><strong>Ausführung</strong><small>Was passiert gerade?</small></div>
+      <div class="journey-step"><span>05</span><strong>Rückmeldung / Status</strong><small>Was ist erledigt oder blockiert?</small></div>
+      <div class="journey-step"><span>06</span><strong>Nächster Schritt</strong><small>Was muss jetzt entschieden werden?</small></div>
+    </div>
+    <div class="work-context"><p><strong>Unterschiedliche Prozesse – ein gemeinsamer Arbeitskontext.</strong></p><div class="areas" aria-label="Betriebsbereiche"><span>Projekt</span><span>Service</span><span>Personal / Ressourcen</span><span>Beschaffung</span></div></div>
+  </div>
+</section>
+
+<section class="resource-focus" id="ressourcen">
+  <div class="wrap resource-layout">
+    <div class="resource-copy"><div class="eyebrow">Menschen sinnvoll einplanen</div><h2>Qualifikation gehört dorthin, wo sie gebraucht wird.</h2><p>Projekt und Service konkurrieren im Alltag um dieselben spezialisierten Mitarbeitenden. Klarwerk soll Bedarf, Verfügbarkeit und Auslastung zusammen sichtbar machen, bevor aus Überschneidungen echte Engpässe werden.</p></div>
+    <div>
+      <div class="resource-logic">
+        <article class="resource-row"><span>Bedarf</span><div><strong>Was verlangt der konkrete Vorgang?</strong><p>Aufgabe, Zeitpunkt und notwendige Qualifikation werden gemeinsam betrachtet.</p></div></article>
+        <article class="resource-row"><span>Verfügbarkeit</span><div><strong>Wer kann tatsächlich übernehmen?</strong><p>Projekt, Service und weitere Bereiche werden nicht als getrennte Personalwelten geplant.</p></div></article>
+        <article class="resource-row"><span>Engpass</span><div><strong>Wo kollidieren Zusagen und Kapazität?</strong><p>Überschneidungen sollen sichtbar werden, bevor Termine oder Abläufe kippen.</p></div></article>
+      </div>
+      <div class="resource-caveat">Diese Mitarbeiter- und Ressourcenlogik ist zentraler Produktkern und sichtbares Zielbild des Demonstrators; eine vollständig produktive Disposition wird damit noch nicht behauptet.</div>
+    </div>
+  </div>
+</section>
+
+<section class="product" id="produkt">
+  <div class="wrap">
+    <div class="product-top"><div><div class="eyebrow">Klarwerk Prozesszentrale</div><h2>Zusammenhänge sehen. Operativ entscheiden.</h2></div><p>Die gemeinsame Oberfläche führt Bereichsstatus, Aufgaben, Menschen und Zuständigkeiten so zusammen, dass aus Übersicht ein konkreter nächster Schritt werden kann.</p></div>
+    <div class="product-window"><div class="browser-bar" aria-hidden="true"><i></i><i></i><i></i></div><div class="product-view"><iframe src="klarwerk-prozesszentrale.html" title="Große reale Vorschau der Klarwerk Prozesszentrale" inert tabindex="-1" scrolling="no" loading="lazy"></iframe></div><a class="product-demo-link" href="klarwerk-prozesszentrale.html" aria-label="Prozesszentrale: Interaktive Demo testen"><span>INTERAKTIVE DEMO →</span></a></div>
+    <div class="product-footer"><div class="product-note"><i aria-hidden="true"></i>Fiktive Beispieldaten · gemeinsame Oberfläche im Demonstrator</div><a class="product-link" href="klarwerk-prozesszentrale.html">Interaktive Demo testen →</a></div>
+    <div class="maturity-note"><strong>Reifegrad:</strong> Teile der Prozesslogik sind bereits serverseitig umgesetzt und real gegen PostgreSQL geprüft. Weitere Betriebsbereiche werden in der Prozesszentrale als gemeinsames Arbeitsmodell entwickelt.</div>
+  </div>
+</section>
+
+<section class="updates" id="updates">
+  <div class="wrap">
+    <div class="updates-head"><div><div class="eyebrow">Aus der Entwicklung</div><h2>Was technisch gerade entsteht.</h2></div><p>Ein einzelner belegter Eintrag zeigt die Entwicklungstiefe, ohne den Beispielprozess zur gesamten Produktdefinition zu machen.</p></div>
+    <article class="update-entry">
+      <div class="update-meta"><time datetime="2026-08-24">24.08.2026</time><span>Backend-Update</span></div>
+      <h3>Wareneingang und Materialisierung integriert</h3>
+      <div class="update-body"><p>Der Beschaffungsprozess reicht technisch inzwischen über Bestellung und manuellen Übergang hinaus bis zum persistenten Wareneingang und zur kontrollierten Materialbuchung.</p><div class="update-tech"><span>Berechtigungen</span><span>Audit</span><span>Idempotenz</span><span>PostgreSQL</span><span>Nebenläufigkeitsschutz</span></div><div class="test-status"><i aria-hidden="true"></i>Backend-/PostgreSQL-Gesamttest: 945 Tests bestanden</div></div>
+    </article>
+  </div>
+</section>
+
+<section class="gallery-section" id="demos">
+  <div class="wrap">
+    <div class="section-head"><div class="eyebrow">Weitere Demonstratoren</div><h2>Betriebliche Fragen in konkreten Ansichten.</h2></div>
+    <p class="gallery-intro">Drei nachrangige Beispiele zeigen Kapazität, Kennzahlen und regelbasierte Auswertung. Sie verwenden fiktive Daten und stehen nicht für eigenständige fertige Produkte.</p>
+    <div class="gallery">
+      <article class="demo-card main"><div class="demo-preview"><iframe src="kessler-shk-dashboard.html" title="Reale Vorschau des Kessler SHK Kapazitäts-Dashboards" inert tabindex="-1" scrolling="no" loading="lazy"></iframe></div><div class="demo-copy"><span class="demo-type">Kapazität · vereinfachte Annahmen</span><div><h3>Kessler SHK</h3><p>Auftragslage und angenommene Personalkapazität gemeinsam betrachten – als Rechenbeispiel, nicht als Dispositionsentscheidung.</p></div><a href="kessler-shk-dashboard.html" aria-label="Kessler SHK: Demo öffnen">Demo öffnen →</a></div></article>
+      <article class="demo-card side"><div class="demo-preview"><iframe src="nordkorn-roesterei-dashboard.html" title="Reale Vorschau des Nordkorn Vertriebs-Dashboards" inert tabindex="-1" scrolling="no" loading="lazy"></iframe></div><div class="demo-copy"><span class="demo-type">Dashboard</span><h3>Nordkorn</h3><p>Vertrieb und Kennzahlen mit fiktiven Daten.</p><a href="nordkorn-roesterei-dashboard.html" aria-label="Nordkorn: Demo öffnen">Demo öffnen →</a></div></article>
+      <article class="demo-card side"><div class="demo-preview"><iframe src="preismonitor-beispiel-report.html" title="Reale Vorschau des statischen Preismonitor-Reports" inert tabindex="-1" scrolling="no" loading="lazy"></iframe></div><div class="demo-copy"><span class="demo-type">Statischer Report</span><h3>Preismonitor</h3><p>Regelbasierte Beispielauswertung ohne laufende Überwachung.</p><a href="preismonitor-beispiel-report.html" aria-label="Preismonitor: Demo öffnen">Demo öffnen →</a></div></article>
+    </div>
+  </div>
+</section>
+
+<section class="contact" id="kontakt">
+  <div class="wrap contact-grid">
+    <div><div class="eyebrow" style="color:#e2e7ff">Kontakt</div><h2>Wo fehlt heute der gemeinsame Blick?</h2><p>Eine Kontaktaufnahme ist weiterhin möglich. Neue Aufträge werden derzeit aus gesundheitlichen Gründen nicht angenommen.</p></div>
+    <div class="contact-card"><strong>Ein konkreter Ablauf genügt.</strong><p>Beschreiben Sie kurz, wo Zuständigkeiten, Ressourcen oder nächste Schritte heute schwer zusammenfinden.</p><a href="mailto:kontakt.klarwerk@gmail.com?subject=Unser%20betrieblicher%20Ablauf">kontakt.klarwerk@gmail.com</a></div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap footer-row"><span>© 2026 Klarwerk · Prozesszentrale für betriebliche Abläufe</span><span><a href="impressum.html">Impressum</a></span></div></footer>
+
+<script>
+{
+  const storageKey='klarwerk-theme';
+  const root=document.documentElement;
+  const themeToggle=document.querySelector('.theme-switch');
+  const applyTheme=(theme)=>{
+    const dark=theme==='dark';
+    root.dataset.theme=dark?'dark':'light';
+    themeToggle.setAttribute('aria-checked',String(dark));
+    themeToggle.setAttribute('aria-label',dark?'Helle Darstellung aktivieren':'Dunkle Darstellung aktivieren');
+    themeToggle.title=dark?'Zu Light Mode wechseln':'Zu Dark Mode wechseln';
+  };
+  applyTheme(root.dataset.theme);
+  themeToggle.addEventListener('click',()=>{
+    const next=root.dataset.theme==='dark'?'light':'dark';
+    applyTheme(next);
+    try{localStorage.setItem(storageKey,next)}catch(error){}
+  });
+
+  const menuToggle=document.querySelector('.menu-toggle');
+  const nav=document.getElementById('site-nav');
+  if(menuToggle&&nav){
+    const setOpen=(open)=>{
+      menuToggle.setAttribute('aria-expanded',String(open));
+      nav.dataset.open=String(open);
+      document.body.classList.toggle('menu-open',open);
+    };
+    menuToggle.addEventListener('click',()=>setOpen(menuToggle.getAttribute('aria-expanded')!=='true'));
+    nav.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>setOpen(false)));
+    document.addEventListener('keydown',event=>{
+      if(event.key==='Escape'&&menuToggle.getAttribute('aria-expanded')==='true'){
+        setOpen(false);
+        menuToggle.focus();
+      }
+    });
+    window.addEventListener('resize',()=>{if(window.innerWidth>760)setOpen(false)});
+  }
+}
+</script>
+</body>
+</html>
